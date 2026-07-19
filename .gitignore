@@ -1,0 +1,67 @@
+# Rust
+/target
+/**/target
+**/*.rs.bk
+*.pdb
+
+# Cargo lockfiles for libraries (binaries keep Cargo.lock)
+# Note: scarlet-applesilicon is a project repo, keep Cargo.lock for binaries
+
+# Python (m1n1 proxyclient, tools)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Scarlet build artifacts
+.scarlet/
+*.img
+*.cpio
+*.ext2
+
+# U-Boot / m1n1 build outputs (when submodules are initialized)
+projects/aarch64-apple-limine-full/u-boot/
+projects/aarch64-apple-limine-full/m1n1/
+!projects/aarch64-apple-limine-full/u-boot/.git
+!projects/aarch64-apple-limine-full/m1n1/.git
+
+# Lockfiles that should be committed
+!scarlet.lock
+!**/Cargo.lock
+
+# Logs
+*.log
+logs/
