@@ -1,3 +1,6 @@
 [submodule "projects/aarch64-apple-limine-full/m1n1"]
 	path = projects/aarch64-apple-limine-full/m1n1
 	url = https://github.com/petitstrawberry/m1n1.git
+[submodule "projects/aarch64-apple-limine-full/u-boot"]
+	path = projects/aarch64-apple-limine-full/u-boot
+	url = https://github.com/AsahiLinux/u-boot.git
