@@ -1,0 +1,10 @@
+[package]
+name = "scarlet-driver-cpufreq-apple-soc"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+scarlet = { path = "../../../../Scarlet/kernel", default-features = false }

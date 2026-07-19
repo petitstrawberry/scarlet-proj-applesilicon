@@ -1,25 +1,28 @@
+#![no_std]
+
 //! Apple SoC CPU frequency driver.
 //!
 //! This driver exposes Apple cluster DVFS registers through the common cpufreq
 //! policy layer. Policy decisions are handled by the generic cpufreq core; this
 //! driver only translates pstate requests into Apple DVFS MMIO commands.
 
+extern crate alloc;
+
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use spin::Mutex;
 
-use crate::{
-    arch::mmio,
-    device::{
-        cpufreq::{
-            CpuFrequencyBackend, CpuFrequencyGovernor, CpuFrequencyInfo, CpuFrequencyOpp,
-            CpuFrequencyPolicyRegistration, MAX_CPUFREQ_OPPS, cpu_performance_domain,
-            register_backend, register_policy, set_domain_target_frequency,
-        },
-        fdt::FdtManager,
-    },
-    driver_initcall, vm,
+use scarlet::arch::mmio;
+use scarlet::device::cpufreq::cpu_performance_domain;
+use scarlet::device::cpufreq::register_backend;
+use scarlet::device::cpufreq::register_policy;
+use scarlet::device::cpufreq::set_domain_target_frequency;
+use scarlet::device::cpufreq::{
+    CpuFrequencyBackend, CpuFrequencyGovernor, CpuFrequencyInfo, CpuFrequencyOpp,
+    CpuFrequencyPolicyRegistration, MAX_CPUFREQ_OPPS,
 };
+use scarlet::device::fdt;
+use scarlet::device::fdt::FdtManager;
 
 const APPLE_BACKEND_NAME: &str = "apple-soc-cpufreq";
 const APPLE_DVFS_CMD: usize = 0x20;
@@ -234,18 +237,19 @@ fn set_domain_pstate(domain_phandle: u32, pstate: u32) -> Result<(), &'static st
 }
 
 fn wait_command_ready(vaddr: usize) -> Result<(), &'static str> {
-    let start_us = crate::time::current_time();
+    let start_us = scarlet::time::current_time();
     loop {
         // SAFETY: `vaddr` is an ioremap'd Apple cluster-cpufreq MMIO base.
         let command = unsafe { mmio::read64(vaddr + APPLE_DVFS_CMD) };
         if command & APPLE_DVFS_CMD_BUSY == 0 {
             return Ok(());
         }
-        if crate::time::current_time().saturating_sub(start_us) >= APPLE_DVFS_TRANSITION_TIMEOUT_US
+        if scarlet::time::current_time().saturating_sub(start_us)
+            >= APPLE_DVFS_TRANSITION_TIMEOUT_US
         {
             return Err("apple-cpufreq: DVFS command busy timeout");
         }
-        crate::time::udelay(APPLE_DVFS_POLL_INTERVAL_US);
+        scarlet::time::udelay(APPLE_DVFS_POLL_INTERVAL_US);
     }
 }
 
@@ -258,14 +262,14 @@ fn ensure_mapped(domain: &mut AppleCpuFreqDomain) -> Option<usize> {
     }
 
     let size = domain.size.max(MIN_MMIO_SIZE);
-    match vm::ioremap(domain.paddr, size) {
+    match scarlet::vm::ioremap(domain.paddr, size) {
         Ok(vaddr) => {
             domain.vaddr = vaddr;
             Some(vaddr)
         }
         Err(err) => {
             domain.map_failed = true;
-            crate::early_println!(
+            scarlet::early_println!(
                 "[apple-cpufreq] failed to map domain phandle={:#x} paddr={:#x}: {}",
                 domain.phandle,
                 domain.paddr,
@@ -316,7 +320,7 @@ fn initialize_apple_soc_cpufreq_at_boot() {
             continue;
         };
         // let before = read_domain_status(domain).unwrap_or(u32::MAX);
-        // crate::early_println!(
+        // scarlet::early_println!(
         //     "[apple-cpufreq] boot pstate begin domain={:#x} pstate={} freq_khz={} status_before={:#x}",
         //     domain,
         //     opp.pstate,
@@ -329,14 +333,14 @@ fn initialize_apple_soc_cpufreq_at_boot() {
         {
             Ok(()) => {
                 // let after = read_domain_status(domain).unwrap_or(u32::MAX);
-                // crate::early_println!(
+                // scarlet::early_println!(
                 //     "[apple-cpufreq] boot pstate complete domain={:#x} status_after={:#x}",
                 //     domain,
                 //     after,
                 // );
             }
             Err(_err) => {
-                // crate::early_println!(
+                // scarlet::early_println!(
                 //     "[apple-cpufreq] boot pstate failed domain={:#x} pstate={}: {}",
                 //     domain,
                 //     opp.pstate,
@@ -386,7 +390,7 @@ fn scan_fdt(domains: &mut [AppleCpuFreqDomain; MAX_CPUFREQ_DOMAINS]) {
         };
 
         if next >= domains.len() {
-            crate::early_println!("[apple-cpufreq] too many cluster-cpufreq domains");
+            scarlet::early_println!("[apple-cpufreq] too many cluster-cpufreq domains");
             break;
         }
 
@@ -407,7 +411,7 @@ fn scan_fdt(domains: &mut [AppleCpuFreqDomain; MAX_CPUFREQ_DOMAINS]) {
         load_domain_opps(fdt, phandle, &mut domain);
         register_domain_policy(&domain);
 
-        crate::early_println!(
+        scarlet::early_println!(
             "[apple-cpufreq] domain phandle={:#x} paddr={:#x} size={:#x} opps={}",
             domain.phandle,
             domain.paddr,
@@ -463,7 +467,7 @@ fn register_domain_policy(domain: &AppleCpuFreqDomain) {
         governor: CpuFrequencyGovernor::Schedutil,
         transition_latency_ns: APPLE_DVFS_TRANSITION_TIMEOUT_US * 1000,
     }) {
-        crate::early_println!(
+        scarlet::early_println!(
             "[apple-cpufreq] failed to register policy phandle={:#x}: {}",
             domain.phandle,
             err
@@ -543,13 +547,13 @@ fn register_apple_soc_cpufreq_backend() {
         snapshot: cpu_frequency_info,
         set_pstate: Some(set_domain_pstate),
     }) {
-        crate::early_println!("[apple-cpufreq] failed to register backend: {}", err);
+        scarlet::early_println!("[apple-cpufreq] failed to register backend: {}", err);
     }
     ensure_fdt_scanned();
 }
 
-driver_initcall!(register_apple_soc_cpufreq_backend);
-crate::late_initcall!(initialize_apple_soc_cpufreq_at_boot);
+scarlet::driver_initcall!(register_apple_soc_cpufreq_backend);
+scarlet::late_initcall!(initialize_apple_soc_cpufreq_at_boot);
 
 #[cfg(test)]
 mod tests {
@@ -597,3 +601,10 @@ mod tests {
         );
     }
 }
+
+#[used]
+static SCARLET_DRIVER_CPUFREQ_APPLE_SOC_ANCHOR: fn() = force_link;
+
+#[inline(never)]
+/// Force linker retention for the Apple SoC CPU frequency driver crate.
+pub fn force_link() {}
