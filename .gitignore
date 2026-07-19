@@ -52,12 +52,6 @@ wheels/
 *.cpio
 *.ext2
 
-# U-Boot / m1n1 build outputs (when submodules are initialized)
-projects/aarch64-apple-limine-full/u-boot/
-projects/aarch64-apple-limine-full/m1n1/
-!projects/aarch64-apple-limine-full/u-boot/.git
-!projects/aarch64-apple-limine-full/m1n1/.git
-
 # Lockfiles that should be committed
 !scarlet.lock
 !**/Cargo.lock
