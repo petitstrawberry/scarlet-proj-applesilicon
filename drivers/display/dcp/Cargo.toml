@@ -7,7 +7,7 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-scarlet = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f", package = "scarlet", default-features = false }
+scarlet = { git = "https://github.com/petitstrawberry/Scarlet", branch = "dev", package = "scarlet", default-features = false }
 scarlet-driver-apple-dart = { path = "../../iommu/apple-dart" }
 scarlet-driver-apple-asc = { path = "../../soc/apple-asc" }
 scarlet-driver-apple-rtkit = { path = "../../soc/apple-rtkit" }

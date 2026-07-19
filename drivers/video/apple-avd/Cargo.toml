@@ -11,5 +11,5 @@ path = "src/lib.rs"
 debug-device = []
 
 [dependencies]
-scarlet = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f", package = "scarlet", default-features = false }
+scarlet = { git = "https://github.com/petitstrawberry/Scarlet", branch = "dev", package = "scarlet", default-features = false }
 scarlet-driver-apple-pmgr = { path = "../../soc/apple-pmgr" }
