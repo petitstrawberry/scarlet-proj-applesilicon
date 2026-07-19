@@ -7,5 +7,5 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-scarlet = { path = "../../../kernel", default-features = false }
+scarlet = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f", package = "scarlet", default-features = false }
 scarlet-driver-apple-asc = { path = "../apple-asc" }

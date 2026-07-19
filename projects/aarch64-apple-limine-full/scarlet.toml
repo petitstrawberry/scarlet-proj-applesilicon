@@ -8,12 +8,12 @@ path = "bsp"
 package = "scarlet"
 
 [bsp.kernel]
-source = { path = "../../kernel" }
+source = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f", package = "scarlet" }
 # Currently, the hypervisor feature is disabled for Apple Silicon
 features = { network = true, user-fpu = true, user-vector = true, hypervisor = false, limine = true }
 
 [modules]
-"scarlet-module-prototype" = { path = "../../modules/scarlet-module-prototype", enabled = true }
+"scarlet-module-prototype" = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f", package = "scarlet-module-prototype", enabled = true }
 "scarlet-driver-apple-efuse" = { path = "../../drivers/nvmem/apple-efuse", enabled = true }
 "scarlet-driver-apple-wdt" = { path = "../../drivers/watchdog/apple-wdt", enabled = true }
 "scarlet-driver-apple-pinctrl" = { path = "../../drivers/gpio/apple-pinctrl", enabled = true }
@@ -41,6 +41,7 @@ features = { network = true, user-fpu = true, user-vector = true, hypervisor = f
 "scarlet-driver-apple-pcie" = { path = "../../drivers/pcie/apple-pcie", enabled = true }
 "scarlet-driver-apple-spi" = { path = "../../drivers/spi/apple-spi", enabled = true }
 "scarlet-driver-apple-spi-hid" = { path = "../../drivers/spi/apple-spi-hid", enabled = true }
+"scarlet-driver-cpufreq-apple-soc" = { path = "../../drivers/cpufreq/apple-soc", enabled = true }
 "scarlet-driver-dpxbar" = { path = "../../drivers/display/dpxbar", enabled = true }
 "scarlet-driver-dcp" = { path = "../../drivers/display/dcp", enabled = true }
 "scarlet-driver-dcpext" = { path = "../../drivers/display/dcpext", enabled = true }
@@ -53,7 +54,9 @@ output = ".scarlet/images/initramfs-aarch64-apple-full.cpio"
 
 [[images.initramfs.layers]]
 kind = "bundle"
-path = "../../bundles/desktop/bundle.toml"
+source = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f" }
+subdir = "bundles/desktop"
+bundle = "bundle.toml"
 
 [images.rootfs]
 format = "ext2"
@@ -61,7 +64,9 @@ output = ".scarlet/images/rootfs-aarch64-apple-full.ext2"
 
 [[images.rootfs.layers]]
 kind = "bundle"
-path = "../../bundles/full/bundle.toml"
+source = { git = "https://github.com/petitstrawberry/Scarlet", rev = "5d331d8d8f5ca8be72a75fb3155d88b80445e53f" }
+subdir = "bundles/full"
+bundle = "bundle.toml"
 
 [[images.rootfs.layers]]
 kind = "copy"
