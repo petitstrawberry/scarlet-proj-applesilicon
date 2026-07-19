@@ -21,7 +21,6 @@ use scarlet::device::cpufreq::{
     CpuFrequencyBackend, CpuFrequencyGovernor, CpuFrequencyInfo, CpuFrequencyOpp,
     CpuFrequencyPolicyRegistration, MAX_CPUFREQ_OPPS,
 };
-use scarlet::device::fdt;
 use scarlet::device::fdt::FdtManager;
 
 const APPLE_BACKEND_NAME: &str = "apple-soc-cpufreq";

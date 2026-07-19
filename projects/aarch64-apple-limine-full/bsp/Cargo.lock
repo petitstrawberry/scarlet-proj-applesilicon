@@ -68,6 +68,7 @@ dependencies = [
 [[package]]
 name = "scarlet"
 version = "0.16.0"
+source = "git+https://github.com/petitstrawberry/Scarlet?branch=dev#73b1ed9e4e6a3767e57e78e332d0381a5a928bd0"
 dependencies = [
  "fdt",
  "font8x8",
@@ -258,6 +259,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "scarlet-driver-cpufreq-apple-soc"
+version = "0.1.0"
+dependencies = [
+ "fdt",
+ "scarlet",
+ "spin",
+]
+
+[[package]]
 name = "scarlet-driver-cs42l83"
 version = "0.1.0"
 dependencies = [
@@ -312,6 +322,7 @@ dependencies = [
 [[package]]
 name = "scarlet-module-prototype"
 version = "0.1.0"
+source = "git+https://github.com/petitstrawberry/Scarlet?branch=dev#73b1ed9e4e6a3767e57e78e332d0381a5a928bd0"
 dependencies = [
  "scarlet",
 ]
@@ -345,6 +356,7 @@ dependencies = [
  "scarlet-driver-apple-spi-hid",
  "scarlet-driver-apple-spmi",
  "scarlet-driver-apple-wdt",
+ "scarlet-driver-cpufreq-apple-soc",
  "scarlet-driver-cs42l83",
  "scarlet-driver-dcp",
  "scarlet-driver-dcpext",
