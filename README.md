@@ -1,4 +1,4 @@
-# scarlet-applesilicon
+# scarlet-proj-applesilicon
 
 Apple Silicon support for the [Scarlet](https://github.com/petitstrawberry/Scarlet) operating system.
 
@@ -19,7 +19,7 @@ code from U-Boot, m1n1, and AsahiLinux, all of which are GPL-2.0 lineage.
 
 ## Build model
 
-`scarlet-applesilicon` is a standalone cargo-scarlet project. The Scarlet
+`scarlet-proj-applesilicon` is a standalone cargo-scarlet project. The Scarlet
 kernel, scarlet-modules, and reusable filesystem bundles are pulled in via
 pinned git dependencies — no sibling checkout of Scarlet is required.
 
