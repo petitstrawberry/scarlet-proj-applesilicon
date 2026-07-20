@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple numerically controlled oscillator clock driver.
+//!
+//! # Provenance
+//!
+//! Register layout and rate calculation were implemented with reference to
+//! Asahi Linux's `drivers/clk/clk-apple-nco.c`. See the repository
+//! `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

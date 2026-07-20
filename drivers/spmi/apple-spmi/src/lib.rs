@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple SPMI controller and NVMEM provider.
+//!
+//! # Provenance
+//!
+//! Controller behavior and eFuse access were implemented with reference to
+//! Asahi Linux's `drivers/spmi/spmi-apple-controller.c` and
+//! `drivers/nvmem/apple-spmi-nvmem.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

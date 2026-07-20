@@ -4,8 +4,10 @@ Apple Silicon support for the [Scarlet](https://github.com/petitstrawberry/Scarl
 
 This repository is a standalone cargo-scarlet project that adds Apple Silicon
 (M1/T8103/T8112/...) bring-up support to Scarlet. It is licensed under the GNU
-General Public License v2 (GPL-2.0-only) because it ships vendored or derived
-code from U-Boot, m1n1, and AsahiLinux, all of which are GPL-2.0 lineage.
+General Public License v2 (GPL-2.0-only). Included submodules and referenced
+upstream implementations retain their own licenses and notices; m1n1, for
+example, is MIT licensed. See [ATTRIBUTION.md](ATTRIBUTION.md) for the verified
+driver and firmware source map.
 
 ## What lives here
 
@@ -42,4 +44,5 @@ real Apple Silicon hardware.
 
 ## License
 
-GPL-2.0-only. See [`LICENSE`](LICENSE).
+GPL-2.0-only. See [`LICENSE`](LICENSE) and the upstream notices recorded in
+[`ATTRIBUTION.md`](ATTRIBUTION.md).

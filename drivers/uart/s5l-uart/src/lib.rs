@@ -1,5 +1,12 @@
 #![no_std]
 
+//! Apple S5L UART driver.
+//!
+//! # Provenance
+//!
+//! Register behavior was implemented with reference to m1n1's `src/uart.c`.
+//! See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::{boxed::Box, collections::VecDeque, sync::Arc, vec};

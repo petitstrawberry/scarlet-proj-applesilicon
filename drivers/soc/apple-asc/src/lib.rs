@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple System Coprocessor mailbox driver.
+//!
+//! # Provenance
+//!
+//! Mailbox register and message behavior were implemented with reference to
+//! m1n1's `src/asc.c` and `proxyclient/m1n1/hw/asc.py`. See the repository
+//! `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 #[cfg(test)]

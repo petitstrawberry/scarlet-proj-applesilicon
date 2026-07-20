@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple power-management controller driver.
+//!
+//! # Provenance
+//!
+//! Power-state registers and ADT clock-gate handling were implemented with
+//! reference to Asahi Linux's `drivers/pmdomain/apple/pmgr-pwrstate.c` and
+//! m1n1's `src/pmgr.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

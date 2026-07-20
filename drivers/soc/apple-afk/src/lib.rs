@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple AFK shared-memory transport.
+//!
+//! # Provenance
+//!
+//! Ring ownership, DMA layout, and cache-coherency behavior were implemented
+//! with reference to Asahi Linux's `drivers/gpu/drm/apple/afk.c` and m1n1's
+//! `src/afk.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::sync::Arc;

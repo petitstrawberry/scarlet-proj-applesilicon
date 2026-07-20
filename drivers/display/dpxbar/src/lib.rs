@@ -1,4 +1,13 @@
 #![no_std]
+
+//! Apple DisplayPort crossbar driver.
+//!
+//! # Provenance
+//!
+//! DisplayPort routing behavior was implemented with reference to Asahi
+//! Linux's Apple DRM display path, including `drivers/gpu/drm/apple/av.c` and
+//! `dptxep.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

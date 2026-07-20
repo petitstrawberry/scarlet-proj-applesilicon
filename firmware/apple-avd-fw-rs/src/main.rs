@@ -1,6 +1,15 @@
 #![no_std]
 #![no_main]
 
+//! Scarlet firmware for the Cortex-M3 embedded in Apple AVD.
+//!
+//! # Provenance
+//!
+//! Interrupt numbering and decoder hardware behavior were implemented with
+//! reference to m1n1's `proxyclient/m1n1/fw/avd/decoder.py`. The mailbox ABI
+//! between this firmware and the Scarlet driver is Scarlet-specific. See the
+//! repository `ATTRIBUTION.md`.
+
 mod abi;
 mod irq;
 mod mailbox;

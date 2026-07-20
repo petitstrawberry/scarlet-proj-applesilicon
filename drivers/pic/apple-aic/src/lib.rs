@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple Interrupt Controller driver.
+//!
+//! # Provenance
+//!
+//! Register definitions and interrupt behavior were implemented with reference
+//! to Asahi Linux's `drivers/irqchip/irq-apple-aic.c`. See the repository
+//! `ATTRIBUTION.md` for the reviewed upstream revision and license notice.
+
 extern crate alloc;
 
 mod fiq;

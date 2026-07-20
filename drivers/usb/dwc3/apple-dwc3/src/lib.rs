@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple glue driver for the Synopsys DWC3 controller.
+//!
+//! # Provenance
+//!
+//! Apple-specific power, PHY, and DART integration was implemented with
+//! reference to Asahi Linux's `drivers/usb/dwc3/dwc3-apple.c`. See the
+//! repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

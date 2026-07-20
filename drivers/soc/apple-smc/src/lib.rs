@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple Silicon SMC service driver.
+//!
+//! # Provenance
+//!
+//! The firmware service protocol was implemented with reference to m1n1's
+//! `src/smc.c`. This is not the legacy Intel Mac SMC interface. See the
+//! repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

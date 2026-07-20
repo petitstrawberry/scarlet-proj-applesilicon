@@ -5,6 +5,12 @@
 //! This driver exposes Apple cluster DVFS registers through the common cpufreq
 //! policy layer. Policy decisions are handled by the generic cpufreq core; this
 //! driver only translates pstate requests into Apple DVFS MMIO commands.
+//!
+//! # Provenance
+//!
+//! Apple cluster DVFS register behavior was implemented with reference to
+//! Asahi Linux's `drivers/cpufreq/apple-soc-cpufreq.c`. See the repository
+//! `ATTRIBUTION.md`.
 
 extern crate alloc;
 

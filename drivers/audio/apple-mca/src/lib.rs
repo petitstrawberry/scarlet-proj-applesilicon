@@ -1,6 +1,13 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple MCA audio-controller driver.
+//!
+//! # Provenance
+//!
+//! Register layout and DAI behavior were implemented with reference to Asahi
+//! Linux's `sound/soc/apple/mca.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

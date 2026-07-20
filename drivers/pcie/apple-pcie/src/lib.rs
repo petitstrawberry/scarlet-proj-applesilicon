@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple Silicon PCIe host-controller driver.
+//!
+//! # Provenance
+//!
+//! Port, interrupt, and configuration-space behavior were implemented with
+//! reference to Asahi Linux's `drivers/pci/controller/pcie-apple.c`. See the
+//! repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

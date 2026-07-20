@@ -1,4 +1,13 @@
 #![no_std]
+
+//! Apple external-display DCP endpoint driver.
+//!
+//! # Provenance
+//!
+//! External-display endpoint behavior was implemented with reference to Asahi
+//! Linux's `drivers/gpu/drm/apple/av.c` and `dptxep.c`, and m1n1's DCP service
+//! descriptions. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

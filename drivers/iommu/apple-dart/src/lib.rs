@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple DART IOMMU driver.
+//!
+//! # Provenance
+//!
+//! Register layouts and translation behavior were implemented with reference
+//! to Asahi Linux's `drivers/iommu/apple-dart.c` and m1n1's `src/dart.c` and
+//! `proxyclient/m1n1/hw/dart.py`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

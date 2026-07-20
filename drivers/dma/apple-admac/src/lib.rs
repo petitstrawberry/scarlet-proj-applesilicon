@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple ADMAC DMA-controller driver.
+//!
+//! # Provenance
+//!
+//! Channel registers and descriptor behavior were implemented with reference
+//! to Asahi Linux's `drivers/dma/apple-admac.c`. See the repository
+//! `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

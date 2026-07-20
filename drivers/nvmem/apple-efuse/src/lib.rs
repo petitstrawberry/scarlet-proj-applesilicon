@@ -1,5 +1,12 @@
 #![no_std]
 
+//! Apple eFuse NVMEM provider.
+//!
+//! # Provenance
+//!
+//! eFuse register access was implemented with reference to Asahi Linux's
+//! `drivers/nvmem/apple-efuses.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

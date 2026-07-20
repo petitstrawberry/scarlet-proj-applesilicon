@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple SPI controller driver.
+//!
+//! # Provenance
+//!
+//! Register definitions and transfer behavior were implemented with reference
+//! to Asahi Linux's `drivers/spi/spi-apple.c`. See the repository
+//! `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

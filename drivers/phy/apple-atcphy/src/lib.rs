@@ -1,6 +1,14 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple Type-C PHY driver.
+//!
+//! # Provenance
+//!
+//! PHY registers, mode transitions, and calibration handling were implemented
+//! with reference to Asahi Linux's `drivers/phy/apple/atc.c`. See the
+//! repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;

@@ -6,6 +6,12 @@
 //! display DART mappings described by `iommu-addresses`, boots RTKit, selects a
 //! panel mode through `disp0-service`, and presents through DCP surface swaps.
 //! Limine's framebuffer memory is not used by this driver.
+//!
+//! # Provenance
+//!
+//! DCP hand-off and service behavior were implemented with reference to Asahi
+//! Linux's `drivers/gpu/drm/apple/dcp.c` and m1n1's `src/dcp.c` and
+//! `proxyclient/m1n1/fw/dcp/manager.py`. See the repository `ATTRIBUTION.md`.
 
 extern crate alloc;
 

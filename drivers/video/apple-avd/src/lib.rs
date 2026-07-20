@@ -1,6 +1,15 @@
 #![no_std]
 #![allow(dead_code)]
 
+//! Apple AVD video-decoder driver and Scarlet firmware transport.
+//!
+//! # Provenance
+//!
+//! Hardware command and workspace behavior was implemented with reference to
+//! m1n1's `proxyclient/m1n1/fw/avd/decoder.py`. The kernel/firmware mailbox ABI
+//! and Scarlet video-device integration are designed for Scarlet. See the
+//! repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 mod common;

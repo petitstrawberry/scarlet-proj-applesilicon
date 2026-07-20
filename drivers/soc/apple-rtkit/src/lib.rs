@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple RTKit protocol implementation.
+//!
+//! # Provenance
+//!
+//! Endpoint negotiation, buffer management, and boot sequencing were
+//! implemented with reference to Asahi Linux's `drivers/soc/apple/rtkit.c` and
+//! m1n1's `src/rtkit.c`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::collections::VecDeque;

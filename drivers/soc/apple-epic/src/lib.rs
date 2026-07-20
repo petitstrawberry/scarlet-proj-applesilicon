@@ -1,5 +1,14 @@
 #![no_std]
 
+//! Apple EPIC service protocol.
+//!
+//! # Provenance
+//!
+//! Service discovery and message framing were implemented with reference to
+//! Asahi Linux's `drivers/gpu/drm/apple/systemep.c` and
+//! `drivers/gpu/drm/apple/epic/dpavservep.c`, plus m1n1's
+//! `proxyclient/m1n1/fw/afk/epic.py`. See the repository `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::string::String;

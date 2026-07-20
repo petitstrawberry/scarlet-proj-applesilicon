@@ -1,4 +1,8 @@
 //! Cortex-M3 interrupt handling for the Apple AVD firmware.
+//!
+//! IRQ numbering and decode-status handling were implemented with reference to
+//! m1n1's `proxyclient/m1n1/fw/avd/decoder.py`. See the repository
+//! `ATTRIBUTION.md` for provenance and license details.
 
 use core::arch::asm;
 

@@ -1,5 +1,13 @@
 #![no_std]
 
+//! Apple Silicon watchdog driver.
+//!
+//! # Provenance
+//!
+//! Register layout and watchdog sequencing were implemented with reference to
+//! Asahi Linux's `drivers/watchdog/apple_wdt.c`. See the repository
+//! `ATTRIBUTION.md`.
+
 extern crate alloc;
 
 use alloc::boxed::Box;
