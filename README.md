@@ -1,4 +1,4 @@
-# scarlet-proj-applesilicon
+# scarlet-project-applesilicon
 
 Apple Silicon support for the [Scarlet](https://github.com/petitstrawberry/Scarlet) operating system.
 
@@ -21,7 +21,7 @@ driver and firmware source map.
 
 ## Build model
 
-`scarlet-proj-applesilicon` is a standalone cargo-scarlet project. The Scarlet
+`scarlet-project-applesilicon` is a standalone cargo-scarlet project. The Scarlet
 kernel, scarlet-modules, and reusable filesystem bundles are pulled in via
 pinned git dependencies — no sibling checkout of Scarlet is required.
 
