@@ -55,6 +55,7 @@
             src = scarlet-sdk;
             buildAndTestSubdir = "cargo-scarlet";
             cargoLock.lockFile = "${scarlet-sdk}/Cargo.lock";
+            nativeBuildInputs = [ pkgs.curl ];
           };
 
           cargo-scarlet-plugin-limine = pkgs.rustPlatform.buildRustPackage {
