@@ -95,4 +95,4 @@ name = "SCARLET_ROOT"
 type = "linux-filesystem"
 
 [runner]
-command = "tools/deploy_m1n1_usb.py"
+command = "tools/run.sh"

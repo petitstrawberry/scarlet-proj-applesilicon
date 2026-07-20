@@ -127,6 +127,53 @@ def summarize_failure(exc):
     return type(exc).__name__
 
 
+def ensure_python_modules(module_names):
+    missing = []
+    for module_name in module_names:
+        result = subprocess.run(
+            [sys.executable, "-c", f"import {module_name}"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if result.returncode != 0:
+            missing.append(module_name)
+
+    if missing:
+        modules = ", ".join(missing)
+        raise RuntimeError(
+            f"missing Python module(s) required by m1n1: {modules}; "
+            "enter this repository's nix develop shell"
+        )
+
+
+def ensure_commands(command_names):
+    missing = [name for name in command_names if shutil.which(name) is None]
+    if missing:
+        commands = ", ".join(missing)
+        raise RuntimeError(
+            f"missing command(s) required by m1n1: {commands}; "
+            "enter this repository's nix develop shell"
+        )
+
+
+def chainload_failure_is_retryable(exc):
+    output = "\n".join(
+        str(text)
+        for text in (getattr(exc, "stderr", None), getattr(exc, "output", None))
+        if text
+    )
+    retryable_markers = (
+        "SerialException",
+        "UartTimeout",
+        "ProxyError",
+        "USBError",
+        "timed out",
+        "Timed out",
+    )
+    return any(marker in output for marker in retryable_markers)
+
+
 def env_flag(name):
     value = os.environ.get(name)
     if value is None:
@@ -244,6 +291,9 @@ def build_image(args):
 
 
 def chainload(args):
+    if not args.m1n1.is_file():
+        raise FileNotFoundError(f"m1n1 payload not found: {args.m1n1}")
+
     env = os.environ.copy()
     env["M1N1DEVICE"] = args.proxy_device
     cmd = [sys.executable, TOOLS_DIR / "chainload.py", "-r", args.m1n1]
@@ -252,6 +302,7 @@ def chainload(args):
     print("+ " + " ".join(str(part) for part in cmd))
 
     while True:
+        wait_for_device(args.proxy_device, timeout_remaining(deadline))
         try:
             result = run_checked_capture(cmd, cwd=REPO_ROOT, env=env, echo=False)
             if result.stdout:
@@ -260,6 +311,10 @@ def chainload(args):
                 print(result.stderr, end="", file=sys.stderr)
             return
         except subprocess.CalledProcessError as exc:
+            if not chainload_failure_is_retryable(exc):
+                raise RuntimeError(
+                    f"m1n1 chainload cannot start: {summarize_failure(exc)}"
+                ) from exc
             remaining = timeout_remaining(deadline)
             if remaining is not None and remaining <= 0:
                 raise
@@ -675,6 +730,7 @@ def start_guest_bare(args):
     attempt = 1
     try:
         while True:
+            wait_for_device(args.proxy_device, timeout_remaining(deadline))
             try:
                 result = run_checked_capture(cmd, cwd=REPO_ROOT, env=env, echo=False)
                 if result.stdout:
@@ -691,6 +747,10 @@ def start_guest_bare(args):
                         print(exc.stderr, end="", file=sys.stderr)
                     print("Chainload completed (target left proxy mode after reload).")
                     return
+                if not chainload_failure_is_retryable(exc):
+                    raise RuntimeError(
+                        f"m1n1 chainload cannot start: {summarize_failure(exc)}"
+                    ) from exc
                 remaining = timeout_remaining(deadline)
                 if remaining is not None and remaining <= 0:
                     raise
@@ -786,6 +846,17 @@ def main():
     if args.avd_info_json:
         args.avd_info_json = pathlib.Path(args.avd_info_json).resolve()
 
+    required_python_modules = ["serial"] if args.uart_console_only else ["construct", "serial"]
+    try:
+        ensure_python_modules(required_python_modules)
+        if not args.uart_console_only:
+            ensure_commands(
+                ("llvm-config", "clang", "ld.lld", "llvm-objcopy", "llvm-objdump", "llvm-nm")
+            )
+    except RuntimeError as exc:
+        print(f"deployment environment error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
     if args.uart_console_only:
         try:
             run_uart_console(args)
@@ -861,6 +932,9 @@ def main():
         )
         print(f"last error: {summarize_failure(exc)}", file=sys.stderr)
         sys.exit(exc.returncode)
+    except (FileNotFoundError, RuntimeError) as exc:
+        print(f"deployment error: {exc}", file=sys.stderr)
+        sys.exit(1)
     except TimeoutError as exc:
         print(f"timeout: {exc}", file=sys.stderr)
         sys.exit(1)

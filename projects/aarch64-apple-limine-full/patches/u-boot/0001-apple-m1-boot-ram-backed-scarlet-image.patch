@@ -1,0 +1,22 @@
+diff --git a/configs/apple_m1_defconfig b/configs/apple_m1_defconfig
+--- a/configs/apple_m1_defconfig
++++ b/configs/apple_m1_defconfig
+@@ -4,7 +4,8 @@ CONFIG_MISC=y
+ CONFIG_DEFAULT_DEVICE_TREE="t8103-j274"
+ CONFIG_SYS_BOOTM_LEN=0x800000
+ CONFIG_SYS_LOAD_ADDR=0x0
+-CONFIG_BOOTCOMMAND="bootflow scan -b"
++CONFIG_USE_BOOTCOMMAND=y
++CONFIG_BOOTCOMMAND="blkmap create s; blkmap map s 0 0x200000 mem 0x900000000; load blkmap 0:1 ${kernel_addr_r} /EFI/BOOT/BOOTAA64.EFI; bootefi ${kernel_addr_r} ${fdtcontroladdr}"
+ CONFIG_USE_PREBOOT=y
+ CONFIG_SYS_CBSIZE=256
+ CONFIG_SYS_PBSIZE=276
+@@ -14,6 +15,8 @@ CONFIG_BOARD_LATE_INIT=y
+ CONFIG_CMD_SELECT_FONT=y
+ CONFIG_NO_NET=y
+ CONFIG_SYS_64BIT_LBA=y
++CONFIG_BLKMAP=y
++CONFIG_CMD_BLKMAP=y
+ CONFIG_APPLE_SPI_KEYB=y
+ CONFIG_APPLE_MTP_KEYB=y
+ # CONFIG_MMC is not set

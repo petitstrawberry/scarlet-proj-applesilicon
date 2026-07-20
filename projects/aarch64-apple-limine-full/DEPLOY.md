@@ -47,6 +47,9 @@ python3 projects/aarch64-apple-limine-full/tools/deploy_m1n1_usb.py \
 ```
 
 `--no-build` を外せばイメージビルドから自動実行。
+`cargo scarlet run --project projects/aarch64-apple-limine-full` から実行する
+場合は、cargo-scarlet が先にイメージを生成し、project runner が
+`deploy_m1n1_usb.py --no-build` を呼ぶため二重ビルドしない。
 
 デフォルトでは `deploy_m1n1_usb.py` が m1n1 の live ADT から
 `/arm-io/avd` と `/arm-io/dart-avd` を読み、guest payload 内 DTB に
