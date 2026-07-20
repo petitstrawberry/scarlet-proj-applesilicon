@@ -14,11 +14,16 @@ import tempfile
 import threading
 import time
 
+import apple_boot_payload
+
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 PROJECT_DIR = pathlib.Path(__file__).resolve().parents[1]
 M1N1_DIR = PROJECT_DIR / "m1n1"
 PROXYCLIENT_DIR = M1N1_DIR / "proxyclient"
 TOOLS_DIR = PROXYCLIENT_DIR / "tools"
+BUILD_UBOOT = PROJECT_DIR / "build-uboot.sh"
+DEFAULT_M1N1 = M1N1_DIR / "build" / "m1n1.bin"
+FIRMWARE_DIR = PROJECT_DIR / ".scarlet" / "firmware"
 DEFAULT_IMAGE_ADDR = 0x900000000
 DEFAULT_IMAGE_MAP_SIZE = 0x40000000
 DEFAULT_ENTRY_POINT = 0x800
@@ -290,6 +295,41 @@ def build_image(args):
     run_checked(cmd)
 
 
+def default_payload_path(machine):
+    return FIRMWARE_DIR / f"boot-{machine}.bin"
+
+
+def ensure_boot_payload(args):
+    managed_m1n1 = DEFAULT_M1N1.resolve()
+    managed_payload = default_payload_path(args.machine).resolve()
+    managed = args.m1n1 == managed_m1n1 and args.payload == managed_payload
+
+    if not managed:
+        if args.payload_build == "always":
+            raise RuntimeError("cannot rebuild custom --m1n1 or --payload paths")
+        for name, path in (("m1n1", args.m1n1), ("payload", args.payload)):
+            if not path.is_file():
+                raise FileNotFoundError(f"custom {name} not found: {path}")
+        print("Using explicit m1n1/payload paths; automatic freshness check skipped.")
+        return
+
+    fresh, reason = apple_boot_payload.check_fresh(
+        PROJECT_DIR, args.machine, args.m1n1, args.payload
+    )
+    if args.payload_build == "never":
+        if not fresh:
+            raise RuntimeError(f"boot payload is stale: {reason}")
+        return
+    if args.payload_build == "always" or not fresh:
+        print(f"Building Apple boot payload ({reason})...")
+        run_checked([BUILD_UBOOT, args.machine], cwd=PROJECT_DIR)
+        fresh, reason = apple_boot_payload.check_fresh(
+            PROJECT_DIR, args.machine, args.m1n1, args.payload
+        )
+    if not fresh:
+        raise RuntimeError(f"boot payload build did not produce a current artifact: {reason}")
+
+
 def chainload(args):
     if not args.m1n1.is_file():
         raise FileNotFoundError(f"m1n1 payload not found: {args.m1n1}")
@@ -342,6 +382,8 @@ def runner_command_args(args):
         args.m1n1,
         "--payload",
         args.payload,
+        "--payload-build",
+        "never",
         "--machine",
         args.machine,
         "--image",
@@ -800,8 +842,14 @@ def main():
     parser.add_argument("--tmux-keep-on-exit", action="store_true", help="Keep tmux panes open after the HV runner exits")
     parser.add_argument("--picocom", default=os.environ.get("SCARLET_M1N1_PICOCOM", "picocom"), help="picocom executable for tmux UART console")
     parser.add_argument("--connect-timeout", type=float, default=None, help="Seconds to wait for USB device files")
-    parser.add_argument("--m1n1", type=existing_path, default=M1N1_DIR / "payloads" / "m1n1.bin", help="Fresh raw m1n1.bin to chainload")
-    parser.add_argument("--payload", type=existing_path, default=M1N1_DIR / "payloads" / "boot-j293.bin", help="Guest raw payload: m1n1 + DTB + U-Boot")
+    parser.add_argument("--m1n1", type=pathlib.Path, help="Raw outer m1n1.bin to chainload")
+    parser.add_argument("--payload", type=pathlib.Path, help="Guest raw payload: m1n1 + DTB + U-Boot")
+    parser.add_argument(
+        "--payload-build",
+        choices=("auto", "always", "never"),
+        default="auto",
+        help="Build generated m1n1/U-Boot payloads when stale, always, or never",
+    )
     parser.add_argument("--machine", default="j293", help="Machine code for DTB selection")
     parser.add_argument("--image", type=pathlib.Path, default=PROJECT_DIR / ".scarlet" / "images" / "limine-aarch64-apple-full.img", help="Scarlet Limine UEFI image")
     parser.add_argument("--image-addr", type=parse_int, default=DEFAULT_IMAGE_ADDR, help="Guest physical RAM address used by U-Boot blkmap")
@@ -841,8 +889,14 @@ def main():
 
     args.project = str(pathlib.Path(args.project).resolve())
     args.image = pathlib.Path(args.image).resolve()
-    args.payload = pathlib.Path(args.payload).resolve()
-    args.m1n1 = pathlib.Path(args.m1n1).resolve()
+    args.payload = (
+        pathlib.Path(args.payload).resolve()
+        if args.payload
+        else default_payload_path(args.machine).resolve()
+    )
+    args.m1n1 = (
+        pathlib.Path(args.m1n1).resolve() if args.m1n1 else DEFAULT_M1N1.resolve()
+    )
     if args.avd_info_json:
         args.avd_info_json = pathlib.Path(args.avd_info_json).resolve()
 
@@ -867,6 +921,12 @@ def main():
         except TimeoutError as exc:
             print(f"timeout: {exc}", file=sys.stderr)
             sys.exit(1)
+
+    try:
+        ensure_boot_payload(args)
+    except (FileNotFoundError, RuntimeError, subprocess.CalledProcessError) as exc:
+        print(f"boot payload error: {summarize_failure(exc)}", file=sys.stderr)
+        sys.exit(1)
 
     if args.serial:
         enter_serial_mode(args.connect_timeout)

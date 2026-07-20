@@ -6,9 +6,10 @@ UBOOT="$BASE/u-boot"
 M1N1="$BASE/m1n1"
 PATCH_DIR="$BASE/patches/u-boot"
 UBOOT_BASE_COMMIT="8aa706b2daa49b64102e44067d8514de8a26dc42"
+M1N1_BASE_COMMIT="e132477af421247dbdad654e527ff230c0abfb71"
 
 IMAGE="${UBOOT}/u-boot-nodtb.bin"
-PAYLOADS="$M1N1/payloads"
+PAYLOAD_BUILDER="$BASE/tools/apple_boot_payload.py"
 
 actual_commit="$(git -C "$UBOOT" rev-parse HEAD)"
 if [ "$actual_commit" != "$UBOOT_BASE_COMMIT" ]; then
@@ -16,6 +17,24 @@ if [ "$actual_commit" != "$UBOOT_BASE_COMMIT" ]; then
   echo "Expected: $UBOOT_BASE_COMMIT" >&2
   exit 1
 fi
+
+actual_m1n1_commit="$(git -C "$M1N1" rev-parse HEAD)"
+if [ "$actual_m1n1_commit" != "$M1N1_BASE_COMMIT" ]; then
+  echo "Unsupported m1n1 commit: $actual_m1n1_commit" >&2
+  echo "Expected: $M1N1_BASE_COMMIT" >&2
+  exit 1
+fi
+
+if [ ! -f "$M1N1/rust/vendor/rust-fatfs/Cargo.toml" ]; then
+  echo "m1n1 nested submodules are missing" >&2
+  echo "Run: git submodule update --init --recursive" >&2
+  exit 1
+fi
+
+echo "Building m1n1 payload from $actual_m1n1_commit..."
+m1n1_version="$(git -C "$M1N1" rev-parse --short=7 HEAD)"
+M1N1_VERSION_TAG="$m1n1_version" \
+  make -C "$M1N1" TOOLCHAIN= LLDDIR= BUILDSTD=1 build/m1n1.bin
 
 for patch in "$PATCH_DIR"/*.patch; do
   [ -e "$patch" ] || continue
@@ -42,18 +61,19 @@ if ! strings "$IMAGE" | grep -Fq \
   exit 1
 fi
 
-cp "$IMAGE" "$PAYLOADS/u-boot-nodtb.bin"
-gzip -kf "$PAYLOADS/u-boot-nodtb.bin"
-
 for machine in "$@"; do
   echo "Generating boot-${machine}.bin..."
-  python3 "$M1N1/make-boot.py" "$machine"
+  payload="$(python3 "$PAYLOAD_BUILDER" compose --project "$BASE" --machine "$machine")"
   if [ -n "${SCARLET_AVD_INFO_JSON:-}" ]; then
     echo "Patching boot-${machine}.bin with Apple AVD nodes..."
     python3 "$BASE/tools/apple_avd_dtb.py" patch-payload \
       --info-json "$SCARLET_AVD_INFO_JSON" \
-      --input "$PAYLOADS/boot-${machine}.bin" \
-      --output "$PAYLOADS/boot-${machine}.bin" \
-      --m1n1-bin "$PAYLOADS/m1n1.bin"
+      --input "$payload" \
+      --output "$payload" \
+      --m1n1-bin "$M1N1/build/m1n1.bin"
+    python3 "$PAYLOAD_BUILDER" record-patched \
+      --project "$BASE" \
+      --machine "$machine" \
+      --info-json "$SCARLET_AVD_INFO_JSON"
   fi
 done

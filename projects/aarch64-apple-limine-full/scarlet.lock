@@ -1106,5 +1106,5 @@ url = "https://github.com/petitstrawberry/carmine"
 rev = "2594c2bf8961d72d6c4a97d21336a5d6c36b95e2"
 
 [sections.usb-rootfs]
-hash = "sha256:eb30953ef7782dd820d395ca559336ea9887e3148d7410f9a17c31461a06b4f7"
+hash = "sha256:59e5467895a71982127462bfdd5d5f87a6b780ea3a351e17bb154944a40af2b6"
 layers = []

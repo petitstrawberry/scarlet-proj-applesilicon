@@ -19,6 +19,130 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ChainloadFailureTests(unittest.TestCase):
+    def test_uboot_build_refreshes_m1n1_before_uboot(self):
+        build_script = MODULE_PATH.parents[1].joinpath("build-uboot.sh").read_text()
+        m1n1_build = (
+            'make -C "$M1N1" TOOLCHAIN= LLDDIR= BUILDSTD=1 build/m1n1.bin'
+        )
+        uboot_build = 'docker run --rm -v "$UBOOT":/work'
+
+        self.assertIn(
+            'M1N1_BASE_COMMIT="e132477af421247dbdad654e527ff230c0abfb71"',
+            build_script,
+        )
+        self.assertIn(
+            'if [ ! -f "$M1N1/rust/vendor/rust-fatfs/Cargo.toml" ]',
+            build_script,
+        )
+        self.assertIn('M1N1_VERSION_TAG="$m1n1_version"', build_script)
+        self.assertIn('"$PAYLOAD_BUILDER" compose', build_script)
+        self.assertLess(build_script.index(m1n1_build), build_script.index(uboot_build))
+
+    def test_payload_auto_skips_current_artifact(self):
+        args = SimpleNamespace(
+            machine="j293",
+            m1n1=MODULE.DEFAULT_M1N1.resolve(),
+            payload=MODULE.default_payload_path("j293").resolve(),
+            payload_build="auto",
+        )
+
+        with (
+            mock.patch.object(
+                MODULE.apple_boot_payload,
+                "check_fresh",
+                return_value=(True, "payload is current"),
+            ),
+            mock.patch.object(MODULE, "run_checked") as run_checked,
+        ):
+            MODULE.ensure_boot_payload(args)
+
+        run_checked.assert_not_called()
+
+    def test_payload_auto_rebuilds_stale_artifact(self):
+        args = SimpleNamespace(
+            machine="j293",
+            m1n1=MODULE.DEFAULT_M1N1.resolve(),
+            payload=MODULE.default_payload_path("j293").resolve(),
+            payload_build="auto",
+        )
+
+        with (
+            mock.patch.object(
+                MODULE.apple_boot_payload,
+                "check_fresh",
+                side_effect=((False, "payload inputs changed"), (True, "current")),
+            ),
+            mock.patch.object(MODULE, "run_checked") as run_checked,
+        ):
+            MODULE.ensure_boot_payload(args)
+
+        run_checked.assert_called_once_with(
+            [MODULE.BUILD_UBOOT, "j293"], cwd=MODULE.PROJECT_DIR
+        )
+
+    def test_payload_always_rebuilds_current_artifact(self):
+        args = SimpleNamespace(
+            machine="j293",
+            m1n1=MODULE.DEFAULT_M1N1.resolve(),
+            payload=MODULE.default_payload_path("j293").resolve(),
+            payload_build="always",
+        )
+
+        with (
+            mock.patch.object(
+                MODULE.apple_boot_payload,
+                "check_fresh",
+                side_effect=((True, "payload is current"), (True, "current")),
+            ),
+            mock.patch.object(MODULE, "run_checked") as run_checked,
+        ):
+            MODULE.ensure_boot_payload(args)
+
+        run_checked.assert_called_once_with(
+            [MODULE.BUILD_UBOOT, "j293"], cwd=MODULE.PROJECT_DIR
+        )
+
+    def test_payload_auto_preserves_custom_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = pathlib.Path(directory)
+            m1n1 = directory_path / "m1n1.bin"
+            payload = directory_path / "boot.bin"
+            m1n1.write_bytes(b"m1n1")
+            payload.write_bytes(b"payload")
+            args = SimpleNamespace(
+                machine="j293",
+                m1n1=m1n1,
+                payload=payload,
+                payload_build="auto",
+            )
+
+            with (
+                mock.patch.object(
+                    MODULE.apple_boot_payload, "check_fresh"
+                ) as check_fresh,
+                mock.patch.object(MODULE, "run_checked") as run_checked,
+            ):
+                MODULE.ensure_boot_payload(args)
+
+            check_fresh.assert_not_called()
+            run_checked.assert_not_called()
+
+    def test_payload_never_rejects_stale_artifact(self):
+        args = SimpleNamespace(
+            machine="j293",
+            m1n1=MODULE.DEFAULT_M1N1.resolve(),
+            payload=MODULE.default_payload_path("j293").resolve(),
+            payload_build="never",
+        )
+
+        with mock.patch.object(
+            MODULE.apple_boot_payload,
+            "check_fresh",
+            return_value=(False, "payload inputs changed"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "payload inputs changed"):
+                MODULE.ensure_boot_payload(args)
+
     def test_project_runner_disables_rebuild(self):
         runner = MODULE_PATH.with_name("run.sh").read_text()
 
@@ -93,6 +217,61 @@ class ChainloadFailureTests(unittest.TestCase):
         )
 
         self.assertTrue(MODULE.chainload_failure_is_retryable(error))
+
+    def test_hv_mode_loads_selected_payload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            directory_path = pathlib.Path(directory)
+            image = directory_path / "scarlet.img"
+            payload = directory_path / "boot.bin"
+            image.write_bytes(b"image")
+            payload.write_bytes(b"payload")
+            args = SimpleNamespace(
+                image=image,
+                payload=payload,
+                image_map_size=0x1000,
+                image_addr=0x900000000,
+                entry_point=0x800000000,
+                connect_timeout=1.0,
+            )
+
+            iface = mock.MagicMock()
+            proxy = mock.MagicMock()
+            proxy_utils = SimpleNamespace(
+                ba=SimpleNamespace(phys_base=0x800000000, mem_size=0x200000000)
+            )
+            hv = mock.MagicMock()
+            hv.adt = None
+            hv.ram_base = 0x800000000
+            proxyutils_module = types.ModuleType("m1n1.proxyutils")
+            proxyutils_module.ProxyUtils = lambda _proxy, heap_size: proxy_utils
+            hv_module = types.ModuleType("m1n1.hv")
+            hv_module.HV = lambda _iface, _proxy, _utils: hv
+            pmu = mock.MagicMock()
+            pmu_module = types.ModuleType("m1n1.hw.pmu")
+            pmu_module.PMU = lambda _proxy_utils: pmu
+
+            with (
+                mock.patch.dict(
+                    sys.modules,
+                    {
+                        "m1n1.proxyutils": proxyutils_module,
+                        "m1n1.hv": hv_module,
+                        "m1n1.hw.pmu": pmu_module,
+                    },
+                ),
+                mock.patch.object(MODULE, "open_proxy", return_value=(iface, proxy)),
+                mock.patch.object(
+                    MODULE,
+                    "patch_avd_guest_payload",
+                    side_effect=lambda _args, _adt, data: data,
+                ),
+                mock.patch.object(MODULE, "enable_avd_pmgr"),
+            ):
+                MODULE.start_guest(args)
+
+            hv.load_raw.assert_called_once_with(b"payload", args.entry_point)
+            iface.writemem.assert_called_once_with(args.image_addr, b"image", True)
+            hv.start.assert_called_once_with()
 
     def test_bare_chainload_does_not_retry_tool_failure(self):
         with tempfile.TemporaryDirectory() as directory:
