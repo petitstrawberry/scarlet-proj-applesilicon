@@ -99,6 +99,10 @@
               pkgs.gnumake
               pkgs.perl
               pkgs.dtc
+              pkgs.e2fsprogs
+              pkgs.mtools
+              pkgs.gnutar
+              pkgs.which
               pkgs.picocom
               pkgs.rsync
               pkgs.tmux
